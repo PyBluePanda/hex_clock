@@ -36,7 +36,7 @@ browser_timezone = st_javascript("Intl.DateTimeFormat().resolvedOptions().timeZo
 with st.sidebar:
     st.header("Hex Clock")
     show_hex_text = st.toggle("Show Hex Code", value=True)
-    show_24hours = st.toggle("24 Hour Clock", value=False)
+    show_24hours = st.toggle("24 Hour Clock", value=True)
     timezone = st.selectbox(
         "Select Timezone",
         options=all_timezones,
