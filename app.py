@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 import time
+import pytz
 
 st.set_page_config(
     page_title="Time Color Clock",
@@ -53,14 +54,21 @@ st.markdown("""
 
 with st.sidebar:
     st.header("Hex Clock")
+    st.write("Europe/London Time")
     show_hex_text = st.toggle("Show Hex Code", value=True)
+    show_24hours = st.toggle("24 Hour Clock", value=False)
+    # TODO: Add option to change timezone
 
 placeholder = st.empty()
 
 while True:
-    now = datetime.now()
-    time_display = now.strftime("%I:%M:%S %p")
-    hex_colour = f"#{now.strftime('%H%M%S')}"
+    utc_now = datetime.now(pytz.utc)
+    london = pytz.timezone('Europe/London')
+    london_time = utc_now.astimezone(london)
+    
+    time_display = london_time.strftime("%I:%M:%S %p")
+    time_display_24 = london_time.strftime("%H:%M:%S")
+    hex_colour = f"#{london_time.strftime('%H%M%S')}"
     text_colour = get_tint_shade_text_colour(hex_colour)
 
     # Inject CSS for background colors
@@ -106,7 +114,11 @@ while True:
     """, unsafe_allow_html=True)
 
     with placeholder.container():
-        st.markdown(f"<div class='big-time' style='color:{text_colour};'>{time_display}</div>", unsafe_allow_html=True)
+        if show_24hours:
+            st.markdown(f"<div class='big-time' style='color:{text_colour};'>{time_display_24}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='big-time' style='color:{text_colour};'>{time_display}</div>", unsafe_allow_html=True)
+        
         if show_hex_text:
                 st.markdown(f"<div class='hex-code' style='color:{text_colour};'>{hex_colour}</div>", unsafe_allow_html=True)
         else:
