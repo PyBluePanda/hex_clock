@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import datetime
 import time
 import pytz
+from pytz import all_timezones
+from streamlit_javascript import st_javascript
 
 st.set_page_config(
     page_title="Time Color Clock",
@@ -28,6 +30,19 @@ def get_tint_shade_text_colour(hex_colour, mix_ratio=0.4):
 
     return f'rgb({new_r}, {new_g}, {new_b})'
 
+## automatically detect timezone from browser
+browser_timezone = st_javascript("Intl.DateTimeFormat().resolvedOptions().timeZone") or "Europe/London"
+
+with st.sidebar:
+    st.header("Hex Clock")
+    show_hex_text = st.toggle("Show Hex Code", value=True)
+    show_24hours = st.toggle("24 Hour Clock", value=False)
+    timezone = st.selectbox(
+        "Select Timezone",
+        options=all_timezones,
+        index=all_timezones.index(browser_timezone) if browser_timezone in all_timezones else all_timezones.index("Europe/London")
+    )
+    
 st.markdown("""
     <style>
         #MainMenu, header, footer {visibility: hidden;}
@@ -52,26 +67,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-with st.sidebar:
-    st.header("Hex Clock")
-    st.write("Europe/London Time")
-    show_hex_text = st.toggle("Show Hex Code", value=True)
-    show_24hours = st.toggle("24 Hour Clock", value=False)
-    # TODO: Add option to change timezone
-
 placeholder = st.empty()
 
 while True:
-    utc_now = datetime.now(pytz.utc)
-    london = pytz.timezone('Europe/London')
-    london_time = utc_now.astimezone(london)
-    
-    time_display = london_time.strftime("%I:%M:%S %p")
-    time_display_24 = london_time.strftime("%H:%M:%S")
-    hex_colour = f"#{london_time.strftime('%H%M%S')}"
+    now = datetime.now(pytz.timezone(timezone))
+    time_display = now.strftime("%I:%M:%S %p")
+    time_display_24 = now.strftime("%H:%M:%S")
+    hex_colour = f"#{now.strftime('%H%M%S')}"
     text_colour = get_tint_shade_text_colour(hex_colour)
 
-    # Inject CSS for background colors
+    ## CSS for background colours
     st.markdown(f"""
         <style>
             .stApp {{
@@ -81,7 +86,6 @@ while True:
                 background-color: {text_colour};
                 color: {hex_colour};
             }}
-
             /* Sidebar text elements */
             [data-testid="stSidebar"] h1,
             [data-testid="stSidebar"] h2,
@@ -94,35 +98,31 @@ while True:
             [data-testid="stSidebar"] span {{
                 color: {hex_colour} !important;
             }}
-
             /* Toggle switch styling */
             [data-testid="stSidebar"] .stSwitch > div {{
-                background-color: {hex_colour} !important;  /* Track background */
+                background-color: {hex_colour} !important;
                 border-color: {hex_colour} !important;
             }}
             [data-testid="stSidebar"] .stSwitch input:checked + div {{
-                background-color: {hex_colour} !important;  /* Active state */
+                background-color: {hex_colour} !important;
                 border-color: {hex_colour} !important;
             }}
             [data-testid="stSidebar"] .stSwitch input:checked + div:after {{
-                background-color: {text_colour} !important;  /* Knob color when ON */
+                background-color: {text_colour} !important;
             }}
             [data-testid="stSidebar"] .stSwitch div:after {{
-                background-color: {hex_colour} !important;  /* Knob color when OFF */
+                background-color: {hex_colour} !important;
             }}
         </style>
     """, unsafe_allow_html=True)
 
     with placeholder.container():
-        if show_24hours:
-            st.markdown(f"<div class='big-time' style='color:{text_colour};'>{time_display_24}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"<div class='big-time' style='color:{text_colour};'>{time_display}</div>", unsafe_allow_html=True)
-        
-        if show_hex_text:
-                st.markdown(f"<div class='hex-code' style='color:{text_colour};'>{hex_colour}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown("")
+        st.markdown(
+            f"<div class='big-time' style='color:{text_colour};'>{time_display_24 if show_24hours else time_display}</div>",
+            unsafe_allow_html=True
+        )
 
+        if show_hex_text:
+            st.markdown(f"<div class='hex-code' style='color:{text_colour};'>{hex_colour}</div>", unsafe_allow_html=True)
 
     time.sleep(1)
