@@ -124,5 +124,7 @@ while True:
 
         if show_hex_text:
             st.markdown(f"<div class='hex-code' style='color:{text_colour};'>{hex_colour}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("")
 
     time.sleep(1)
