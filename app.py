@@ -6,7 +6,7 @@ from pytz import all_timezones
 from streamlit_javascript import st_javascript
 
 st.set_page_config(
-    page_title="Time Color Clock",
+    page_title="Hex Clock",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
